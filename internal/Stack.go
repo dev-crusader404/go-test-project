@@ -27,7 +27,7 @@ func (a *Stack[T]) Size() int {
 	return len(a.data)
 }
 
-func runStack() {
+func RunStack() {
 	intStack := Stack[int]{}
 	intStack.Push(1)
 	intStack.Push(2)

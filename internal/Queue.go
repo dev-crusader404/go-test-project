@@ -65,7 +65,7 @@ func (a *Queue) GetAll() []int {
 	return result
 }
 
-func runQueue() {
+func RunQueue() {
 	o := Queue{}
 	o.Push(5)
 	o.Push(-45)

@@ -55,7 +55,7 @@ func (a *List[T]) delete(key T) {
 	}
 }
 
-func runLinkedList() {
+func RunLinkedList() {
 
 	lst := List[int]{}
 	lst.Push(10)

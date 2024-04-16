@@ -1,6 +1,6 @@
 package internal
 
-func containsNearbyDuplicate(nums []int, k int) bool {
+func ContainsNearbyDuplicate(nums []int, k int) bool {
 	if len(nums) < 0 {
 		return false
 	}
