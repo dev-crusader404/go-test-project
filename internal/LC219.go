@@ -1,4 +1,4 @@
-package main
+package internal
 
 func containsNearbyDuplicate(nums []int, k int) bool {
 	if len(nums) < 0 {
