@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	val "github.com/dev-crusader404/go-test-project/codingchallenge"
+)
 
 func main() {
-	fmt.Println(containsNearbyDuplicate([]int{1, 2, 3, 1, 2, 3}, 2))
+	val.RunCreditCardValidator()
 }
