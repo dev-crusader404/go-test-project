@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -30,8 +32,16 @@ func makeHTTPFunc(db DB, hd myHandlerFunc) http.HandlerFunc {
 }
 
 func handler(db DB, w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	reqID := ctx.Value("RequestID").(string)
+
 	fmt.Println("I am at handler function")
-	db.Store("Way through the key")
+	db.Store("Way through the key: " + reqID)
+	time.Sleep(10 * time.Second)
+	resp, _ := json.Marshal(map[string]any{"message": fmt.Sprintf("Successfully processed requestID: %s", reqID)})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp)
 	return nil
 }
 
