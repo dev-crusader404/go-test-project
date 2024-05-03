@@ -1,0 +1,26 @@
+syntax="proto3";
+
+option go_package="github.com/dev-crusader404/go-test-project/grpc/protogen";
+package grpc;
+
+message Request{
+   string Title = 1; 
+}
+
+message Actor{
+    string name = 1;
+    int64 age = 2;
+}
+
+message Response{
+    string movieTitle = 1;
+    string year = 2;
+    string rating = 3;
+    string genre = 4;
+    Actor LeadActor = 5;
+    int64 grossIncome = 6;
+}
+
+service MovieInterface {
+    rpc SearchMovie(Request) returns(Response){}
+}
