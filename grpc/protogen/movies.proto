@@ -12,7 +12,7 @@ message Response{
     string movieTitle = 1;
     string year = 2;
     string description = 3;
-    float32 rating = 4;
+    float rating = 4;
     repeated string genre = 5;
     string releasedDate = 6;
     int64 grossIncome = 7;
