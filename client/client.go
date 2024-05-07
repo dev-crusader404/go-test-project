@@ -30,6 +30,6 @@ func (cl *rClient) Do(r *http.Request) (*http.Response, error) {
 	return cl.c.Do(r)
 }
 
-func GetClient() *rClient {
+func GetClient() RestClient {
 	return client
 }
