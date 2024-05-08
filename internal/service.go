@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,14 +15,11 @@ import (
 )
 
 type MovieFetcher interface {
-	GetMovie() string
-	GetDetails(id string) MovieResult
+	GetMovie(ctx context.Context, title, year string) (int, error)
+	GetDetails(ctx context.Context, id int) (MovieResult, error)
 }
 
 type Movie struct {
-	Title  string
-	Year   string
-	Id     string
 	Client client.RestClient
 }
 
@@ -37,17 +35,17 @@ type MovieResult struct {
 	GrossIncome  int64    `json:"revenue,omitempty"`
 }
 
-func (sm *Movie) GetMovie() (int, error) {
+func (sm *Movie) GetMovie(ctx context.Context, title, year string) (int, error) {
 	URL := props.GetAll().GetString("MOVIE-URL", "")
 	if URL == "" {
 		log.Panic("no url found")
 	}
 	params := url.Values{}
-	params.Add("query", sm.Title)
+	params.Add("query", title)
 	params.Add("include_adult", "false")
 	params.Add("language", "en-US")
 	params.Add("page", "1")
-	params.Add("year", sm.Year)
+	params.Add("year", year)
 	u, err := url.Parse(fmt.Sprintf("%s/search/movie?%s", URL, params.Encode()))
 	if err != nil {
 		log.Panic("error parsing url: " + URL)
@@ -110,7 +108,7 @@ func (sm *Movie) GetMovie() (int, error) {
 	return resMsg.Results[0].ID, nil
 }
 
-func (sm *Movie) GetDetails(id string) (MovieResult, error) {
+func (sm *Movie) GetDetails(ctx context.Context, id int) (MovieResult, error) {
 	var result MovieResult
 	URL := props.GetAll().GetString("MOVIE-URL", "")
 	if URL == "" {
@@ -118,7 +116,7 @@ func (sm *Movie) GetDetails(id string) (MovieResult, error) {
 	}
 	params := url.Values{}
 	params.Add("language", "en-US")
-	u, err := url.Parse(fmt.Sprintf("%s/movie/%s?%s", URL, id, params.Encode()))
+	u, err := url.Parse(fmt.Sprintf("%s/movie/%d?%s", URL, id, params.Encode()))
 	if err != nil {
 		log.Panic("error parsing url: " + URL)
 	}
