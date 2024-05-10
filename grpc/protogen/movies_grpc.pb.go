@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v5.27.0--rc1
-// source: grpc/protogen/movies.proto
+// source: movies.proto
 
 package protogen
 
@@ -105,5 +105,5 @@ var MovieInterface_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "grpc/protogen/movies.proto",
+	Metadata: "movies.proto",
 }
