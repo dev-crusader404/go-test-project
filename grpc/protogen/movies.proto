@@ -19,5 +19,10 @@ message Response{
 }
 
 service MovieInterface {
-    rpc SearchMovie(Request) returns(Response){}
+    rpc SearchMovie(Request) returns(Response){
+        option (google.api.http) = {
+        get: "/v0/movies",
+        query: "title={title}&year={year}"
+    };
+  }
 }
