@@ -24,7 +24,7 @@ func NewGrpcServer(fetcher mv.MovieFetcher) *GrpcServer {
 
 func InitServer(addr string) {
 
-	lis, err := net.Listen("tcp/ip", addr)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("error starting up server: %v", err)
 		return
