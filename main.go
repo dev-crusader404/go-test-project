@@ -17,11 +17,11 @@ var (
 )
 
 func main() {
-	// val.RunCreditCardValidator()
+
 	startup.Load()
 	flag.Parse()
 	fmt.Printf("\nGRPC server running on port %s", *grpcAddr)
-	grpsv.InitServer(*grpcAddr)
+	grpsv.RunGRPCServer(*grpcAddr)
 
 	s := sv.NewDB()
 	http.HandleFunc("/", logger(makeHTTPFunc(s, sv.Handler)))

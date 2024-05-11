@@ -22,7 +22,7 @@ func NewGrpcServer(fetcher mv.MovieFetcher) *GrpcServer {
 	}
 }
 
-func InitServer(addr string) {
+func RunGRPCServer(addr string) {
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
