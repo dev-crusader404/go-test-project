@@ -17,6 +17,7 @@ import (
 type MovieFetcher interface {
 	GetMovie(ctx context.Context, title, year string) (int, error)
 	GetDetails(ctx context.Context, id int) (MovieResult, error)
+	GetMovieNowScreening(ctx context.Context) ([]MovieResult, error)
 }
 
 type Movie struct {
@@ -189,6 +190,70 @@ func (sm *Movie) GetDetails(ctx context.Context, id int) (MovieResult, error) {
 	result.ReleasedDate = resMsg.ReleasedDate
 	result.GrossIncome = resMsg.GrossIncome
 	return result, nil
+}
+
+func (sm *Movie) GetMovieNowScreening(ctx context.Context) ([]MovieResult, error) {
+	var result []MovieResult
+	URL := props.GetAll().GetString("MOVIE-URL", "")
+	if URL == "" {
+		log.Panic("no url found")
+	}
+
+	params := url.Values{}
+	params.Add("language", "en-US")
+	params.Add("page", "1")
+	u, err := url.Parse(fmt.Sprintf("%s/movie/now_playing?%s", URL, params.Encode()))
+	if err != nil {
+		log.Panic("error parsing url: " + URL)
+	}
+
+	req := &http.Request{
+		Method: http.MethodGet,
+		URL:    u,
+		Header: map[string][]string{
+			"Accept":        {"application/json"},
+			"Content-Type":  {"application/json"},
+			"Authorization": {GetAuth()},
+		},
+	}
+
+	resp, err := sm.Client.Do(req)
+	if err != nil {
+		log.Printf("error during call: %s", err.Error())
+		return result, err
+	}
+
+	if resp == nil || resp.Body == nil {
+		err := fmt.Errorf("nil respose/body received")
+		log.Println(err)
+		return result, err
+	}
+
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		err := fmt.Errorf("unable to read response body")
+		log.Println(err)
+		return result, err
+	}
+
+	if resp.StatusCode != 200 {
+		err := fmt.Errorf("\nunexpected status code: %d", resp.StatusCode)
+		log.Println(err)
+		return result, err
+	}
+
+	res := struct {
+		Result []MovieResult `json:"results"`
+	}{}
+	err = json.Unmarshal(b, &res)
+	if err != nil {
+		err := fmt.Errorf("error while unmarshalling")
+		log.Println(err)
+		return result, err
+	}
+	return res.Result, nil
 }
 
 func GetAuth() string {
