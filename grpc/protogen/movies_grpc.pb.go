@@ -107,3 +107,93 @@ var MovieInterface_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "movies.proto",
 }
+
+const (
+	ScreeningNowInterface_MovieNowPlaying_FullMethodName = "/grpc.ScreeningNowInterface/MovieNowPlaying"
+)
+
+// ScreeningNowInterfaceClient is the client API for ScreeningNowInterface service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ScreeningNowInterfaceClient interface {
+	MovieNowPlaying(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*Response, error)
+}
+
+type screeningNowInterfaceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewScreeningNowInterfaceClient(cc grpc.ClientConnInterface) ScreeningNowInterfaceClient {
+	return &screeningNowInterfaceClient{cc}
+}
+
+func (c *screeningNowInterfaceClient) MovieNowPlaying(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, ScreeningNowInterface_MovieNowPlaying_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ScreeningNowInterfaceServer is the server API for ScreeningNowInterface service.
+// All implementations must embed UnimplementedScreeningNowInterfaceServer
+// for forward compatibility
+type ScreeningNowInterfaceServer interface {
+	MovieNowPlaying(context.Context, *PageRequest) (*Response, error)
+	mustEmbedUnimplementedScreeningNowInterfaceServer()
+}
+
+// UnimplementedScreeningNowInterfaceServer must be embedded to have forward compatible implementations.
+type UnimplementedScreeningNowInterfaceServer struct {
+}
+
+func (UnimplementedScreeningNowInterfaceServer) MovieNowPlaying(context.Context, *PageRequest) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MovieNowPlaying not implemented")
+}
+func (UnimplementedScreeningNowInterfaceServer) mustEmbedUnimplementedScreeningNowInterfaceServer() {}
+
+// UnsafeScreeningNowInterfaceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ScreeningNowInterfaceServer will
+// result in compilation errors.
+type UnsafeScreeningNowInterfaceServer interface {
+	mustEmbedUnimplementedScreeningNowInterfaceServer()
+}
+
+func RegisterScreeningNowInterfaceServer(s grpc.ServiceRegistrar, srv ScreeningNowInterfaceServer) {
+	s.RegisterService(&ScreeningNowInterface_ServiceDesc, srv)
+}
+
+func _ScreeningNowInterface_MovieNowPlaying_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ScreeningNowInterfaceServer).MovieNowPlaying(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ScreeningNowInterface_MovieNowPlaying_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ScreeningNowInterfaceServer).MovieNowPlaying(ctx, req.(*PageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ScreeningNowInterface_ServiceDesc is the grpc.ServiceDesc for ScreeningNowInterface service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ScreeningNowInterface_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc.ScreeningNowInterface",
+	HandlerType: (*ScreeningNowInterfaceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "MovieNowPlaying",
+			Handler:    _ScreeningNowInterface_MovieNowPlaying_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "movies.proto",
+}

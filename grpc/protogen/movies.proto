@@ -28,3 +28,11 @@ service MovieInterface {
     };
   }
 }
+
+message PageRequest{
+    int32 limit = 1;
+}
+
+service ScreeningNowInterface {
+    rpc MovieNowPlaying(PageRequest) returns(Response);
+}
