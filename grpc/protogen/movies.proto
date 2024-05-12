@@ -34,5 +34,5 @@ message PageRequest{
 }
 
 service ScreeningNowInterface {
-    rpc MovieNowPlaying(PageRequest) returns(Response);
+    rpc MovieNowPlaying(PageRequest) returns(stream Response){};
 }

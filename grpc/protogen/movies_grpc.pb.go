@@ -116,7 +116,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ScreeningNowInterfaceClient interface {
-	MovieNowPlaying(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*Response, error)
+	MovieNowPlaying(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (ScreeningNowInterface_MovieNowPlayingClient, error)
 }
 
 type screeningNowInterfaceClient struct {
@@ -127,20 +127,43 @@ func NewScreeningNowInterfaceClient(cc grpc.ClientConnInterface) ScreeningNowInt
 	return &screeningNowInterfaceClient{cc}
 }
 
-func (c *screeningNowInterfaceClient) MovieNowPlaying(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, ScreeningNowInterface_MovieNowPlaying_FullMethodName, in, out, opts...)
+func (c *screeningNowInterfaceClient) MovieNowPlaying(ctx context.Context, in *PageRequest, opts ...grpc.CallOption) (ScreeningNowInterface_MovieNowPlayingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ScreeningNowInterface_ServiceDesc.Streams[0], ScreeningNowInterface_MovieNowPlaying_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &screeningNowInterfaceMovieNowPlayingClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ScreeningNowInterface_MovieNowPlayingClient interface {
+	Recv() (*Response, error)
+	grpc.ClientStream
+}
+
+type screeningNowInterfaceMovieNowPlayingClient struct {
+	grpc.ClientStream
+}
+
+func (x *screeningNowInterfaceMovieNowPlayingClient) Recv() (*Response, error) {
+	m := new(Response)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // ScreeningNowInterfaceServer is the server API for ScreeningNowInterface service.
 // All implementations must embed UnimplementedScreeningNowInterfaceServer
 // for forward compatibility
 type ScreeningNowInterfaceServer interface {
-	MovieNowPlaying(context.Context, *PageRequest) (*Response, error)
+	MovieNowPlaying(*PageRequest, ScreeningNowInterface_MovieNowPlayingServer) error
 	mustEmbedUnimplementedScreeningNowInterfaceServer()
 }
 
@@ -148,8 +171,8 @@ type ScreeningNowInterfaceServer interface {
 type UnimplementedScreeningNowInterfaceServer struct {
 }
 
-func (UnimplementedScreeningNowInterfaceServer) MovieNowPlaying(context.Context, *PageRequest) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MovieNowPlaying not implemented")
+func (UnimplementedScreeningNowInterfaceServer) MovieNowPlaying(*PageRequest, ScreeningNowInterface_MovieNowPlayingServer) error {
+	return status.Errorf(codes.Unimplemented, "method MovieNowPlaying not implemented")
 }
 func (UnimplementedScreeningNowInterfaceServer) mustEmbedUnimplementedScreeningNowInterfaceServer() {}
 
@@ -164,22 +187,25 @@ func RegisterScreeningNowInterfaceServer(s grpc.ServiceRegistrar, srv ScreeningN
 	s.RegisterService(&ScreeningNowInterface_ServiceDesc, srv)
 }
 
-func _ScreeningNowInterface_MovieNowPlaying_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PageRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _ScreeningNowInterface_MovieNowPlaying_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(PageRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(ScreeningNowInterfaceServer).MovieNowPlaying(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ScreeningNowInterface_MovieNowPlaying_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ScreeningNowInterfaceServer).MovieNowPlaying(ctx, req.(*PageRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(ScreeningNowInterfaceServer).MovieNowPlaying(m, &screeningNowInterfaceMovieNowPlayingServer{stream})
+}
+
+type ScreeningNowInterface_MovieNowPlayingServer interface {
+	Send(*Response) error
+	grpc.ServerStream
+}
+
+type screeningNowInterfaceMovieNowPlayingServer struct {
+	grpc.ServerStream
+}
+
+func (x *screeningNowInterfaceMovieNowPlayingServer) Send(m *Response) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // ScreeningNowInterface_ServiceDesc is the grpc.ServiceDesc for ScreeningNowInterface service.
@@ -188,12 +214,13 @@ func _ScreeningNowInterface_MovieNowPlaying_Handler(srv interface{}, ctx context
 var ScreeningNowInterface_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "grpc.ScreeningNowInterface",
 	HandlerType: (*ScreeningNowInterfaceServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "MovieNowPlaying",
-			Handler:    _ScreeningNowInterface_MovieNowPlaying_Handler,
+			StreamName:    "MovieNowPlaying",
+			Handler:       _ScreeningNowInterface_MovieNowPlaying_Handler,
+			ServerStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "movies.proto",
 }
