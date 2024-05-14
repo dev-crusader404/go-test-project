@@ -30,9 +30,14 @@ service MovieInterface {
 }
 
 message PageRequest{
-    int32 limit = 1;
+    int32 pageSize = 1;
 }
 
 service ScreeningNowInterface {
-    rpc MovieNowPlaying(PageRequest) returns(stream Response){};
+    rpc MovieNowPlaying(PageRequest) returns(stream Response){
+        option (google.api.http) = {
+        post: "/v0/nowplaying",
+        body: "*"
+    };
+  };
 }
