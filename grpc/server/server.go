@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net"
 
@@ -13,6 +14,7 @@ import (
 
 type GrpcServer struct {
 	proto.UnimplementedMovieInterfaceServer
+	proto.UnimplementedScreeningNowInterfaceServer
 	fetcher mv.MovieFetcher
 }
 
@@ -65,4 +67,36 @@ func (s *GrpcServer) SearchMovie(ctx context.Context, req *proto.Request) (*prot
 		GrossIncome:  result.GrossIncome,
 	}
 	return &response, nil
+}
+
+func (s *GrpcServer) MovieNowPlaying(ctx context.Context, req *proto.PageRequest, stream proto.ScreeningNowInterface_MovieNowPlayingServer) error {
+
+	if req.Limit < 1 {
+		return errors.New("invalid page: Pages start at 1 and max at 500")
+	}
+
+	resultChan := make(chan mv.MovieResult)
+	errorChan := make(chan error)
+	go s.fetcher.GetMovieNowScreening(ctx, req.Limit, resultChan, errorChan)
+
+	for result := range resultChan {
+		response := &proto.Response{
+			MovieTitle:   result.MovieTitle,
+			Description:  result.Overview,
+			Rating:       result.Rating,
+			ReleasedDate: result.ReleasedDate,
+		}
+		err := stream.Send(response)
+		if err != nil {
+			log.Printf("error while sending response: %s", err.Error())
+		}
+	}
+
+	err := <-errorChan
+	if err != nil {
+		log.Printf("error: %s", err.Error())
+		return err
+	}
+	log.Print("Finished processing movie request")
+	return nil
 }
