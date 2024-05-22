@@ -58,7 +58,7 @@ func Handler(db DB, w http.ResponseWriter, r *http.Request) error {
 
 	fmt.Println("I am at handler function")
 	db.Store("Way through the key: " + reqID)
-	time.Sleep(10 * time.Second)
+	time.Sleep(2 * time.Second)
 	resp, _ := json.Marshal(map[string]any{"status": fmt.Sprintf("Successfully processed requestID: %s", reqID),
 		"message": request.Message})
 	w.Header().Set("Content-Type", "application/json")

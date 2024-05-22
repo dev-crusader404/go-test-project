@@ -243,7 +243,7 @@ func RegisterScreeningNowInterfaceHandlerClient(ctx context.Context, mux *runtim
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/grpc.ScreeningNowInterface/MovieNowPlaying", runtime.WithHTTPPathPattern("/grpc.ScreeningNowInterface/MovieNowPlaying"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/grpc.ScreeningNowInterface/MovieNowPlaying", runtime.WithHTTPPathPattern("/v0/nowplaying"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -263,7 +263,7 @@ func RegisterScreeningNowInterfaceHandlerClient(ctx context.Context, mux *runtim
 }
 
 var (
-	pattern_ScreeningNowInterface_MovieNowPlaying_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"grpc.ScreeningNowInterface", "MovieNowPlaying"}, ""))
+	pattern_ScreeningNowInterface_MovieNowPlaying_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v0", "nowplaying"}, ""))
 )
 
 var (

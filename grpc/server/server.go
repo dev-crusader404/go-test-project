@@ -41,7 +41,7 @@ func RunGRPCServer(addr string) {
 		log.Fatalf("error serving: %v", err)
 		return
 	}
-	log.Printf("grpc server running on port %s", addr)
+	log.Printf("grpc server running on port %s\n", addr)
 }
 
 func (s *GrpcServer) SearchMovie(ctx context.Context, req *proto.Request) (*proto.Response, error) {
