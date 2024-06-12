@@ -22,22 +22,19 @@ message Response{
 
 service MovieInterface {
     rpc SearchMovie(Request) returns(Response){
+            option (google.api.http) = {
+                post: "/v0/movies",
+                body: "*"
+            };
+    }
+    rpc MovieNowPlaying(PageRequest) returns(stream Response){
         option (google.api.http) = {
-        post: "/v0/movies",
-        body: "*"
+            post: "/v0/nowplaying",
+            body: "*"
+        };
     };
-  }
 }
 
 message PageRequest{
     int32 pageSize = 1;
-}
-
-service ScreeningNowInterface {
-    rpc MovieNowPlaying(PageRequest) returns(stream Response){
-        option (google.api.http) = {
-        post: "/v0/nowplaying",
-        body: "*"
-    };
-  };
 }

@@ -20,7 +20,7 @@ func main() {
 
 	startup.Load()
 	flag.Parse()
-	fmt.Printf("\nGRPC server running on port %s", *grpcAddr)
+	fmt.Printf("\nGRPC server running on port %s\n", *grpcAddr)
 	go grpsv.RunGRPCServer(*grpcAddr)
 
 	s := sv.NewDB()
