@@ -18,7 +18,7 @@ import (
 type MovieFetcher interface {
 	GetMovie(ctx context.Context, title, year string) (int, error)
 	GetDetails(ctx context.Context, id int) (MovieResult, error)
-	GetMovieNowScreening(ctx context.Context, pageSize int32, result chan<- MovieResult, errChan chan<- error)
+	GetMovieNowScreening(ctx context.Context, pageSize int32, result chan<- MovieResult) error
 }
 
 type Movie struct {
@@ -193,8 +193,8 @@ func (sm *Movie) GetDetails(ctx context.Context, id int) (MovieResult, error) {
 	return result, nil
 }
 
-func (sm *Movie) GetMovieNowScreening(ctx context.Context, pageSize int32, result chan<- MovieResult, errChan chan<- error) {
-	defer closeChannel(result, errChan)
+func (sm *Movie) GetMovieNowScreening(ctx context.Context, pageSize int32, result chan<- MovieResult) error {
+	defer close(result)
 
 	URL := props.GetAll().GetString("MOVIE-URL", "")
 	if URL == "" {
@@ -203,10 +203,11 @@ func (sm *Movie) GetMovieNowScreening(ctx context.Context, pageSize int32, resul
 
 	params := url.Values{}
 	params.Add("language", "en-US")
-	params.Add("page", string(pageSize))
+	params.Add("page", fmt.Sprintf("%d", pageSize))
 	u, err := url.Parse(fmt.Sprintf("%s/movie/now_playing?%s", URL, params.Encode()))
 	if err != nil {
 		log.Panic("error parsing url: " + URL)
+		return err
 	}
 
 	req := &http.Request{
@@ -222,15 +223,13 @@ func (sm *Movie) GetMovieNowScreening(ctx context.Context, pageSize int32, resul
 	resp, err := sm.Client.Do(req)
 	if err != nil {
 		log.Printf("error during call: %s", err.Error())
-		errChan <- err
-		return
+		return err
 	}
 
 	if resp == nil || resp.Body == nil {
 		err := fmt.Errorf("nil respose/body received")
 		log.Println(err)
-		errChan <- err
-		return
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -239,15 +238,13 @@ func (sm *Movie) GetMovieNowScreening(ctx context.Context, pageSize int32, resul
 	if err != nil {
 		err := fmt.Errorf("unable to read response body")
 		log.Println(err)
-		errChan <- err
-		return
+		return err
 	}
 
 	if resp.StatusCode != 200 {
 		err := fmt.Errorf("\nunexpected status code: %d", resp.StatusCode)
 		log.Println(err)
-		errChan <- err
-		return
+		return err
 	}
 
 	res := struct {
@@ -257,16 +254,16 @@ func (sm *Movie) GetMovieNowScreening(ctx context.Context, pageSize int32, resul
 	if err != nil {
 		err := fmt.Errorf("error while unmarshalling")
 		log.Println(err)
-		errChan <- err
+		return err
 	}
 	if len(res.Result) == 0 {
-		errChan <- errors.New("empty response")
-		return
+		return errors.New("empty response")
 	}
 
 	for _, description := range res.Result {
 		result <- description
 	}
+	return nil
 }
 
 func GetAuth() string {
@@ -277,5 +274,4 @@ func GetAuth() string {
 
 func closeChannel(result chan<- MovieResult, err chan<- error) {
 	close(result)
-	close(err)
 }

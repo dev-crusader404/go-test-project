@@ -14,7 +14,6 @@ import (
 
 type GrpcServer struct {
 	proto.UnimplementedMovieInterfaceServer
-	proto.UnimplementedScreeningNowInterfaceServer
 	fetcher mv.MovieFetcher
 }
 
@@ -69,15 +68,18 @@ func (s *GrpcServer) SearchMovie(ctx context.Context, req *proto.Request) (*prot
 	return &response, nil
 }
 
-func (s *GrpcServer) MovieNowPlaying(ctx context.Context, req *proto.PageRequest, stream proto.ScreeningNowInterface_MovieNowPlayingServer) error {
-
+func (s *GrpcServer) MovieNowPlaying(req *proto.PageRequest, stream proto.MovieInterface_MovieNowPlayingServer) error {
+	ctx := context.Background()
 	if req.PageSize < 1 {
 		return errors.New("invalid page: Pages start at 1 and max at 500")
 	}
 
 	resultChan := make(chan mv.MovieResult)
 	errorChan := make(chan error)
-	go s.fetcher.GetMovieNowScreening(ctx, req.PageSize, resultChan, errorChan)
+	go func() {
+		err := s.fetcher.GetMovieNowScreening(ctx, req.PageSize, resultChan)
+		errorChan <- err
+	}()
 
 	for result := range resultChan {
 		response := &proto.Response{
