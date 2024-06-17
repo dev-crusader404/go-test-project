@@ -27,7 +27,7 @@ service MovieInterface {
                 body: "*"
             };
     }
-    rpc MovieNowPlaying(PageRequest) returns(stream Response){
+    rpc MovieNowPlaying(PageRequest) returns(stream InTheatreResp){
         option (google.api.http) = {
             post: "/v0/nowplaying",
             body: "*"
@@ -37,4 +37,11 @@ service MovieInterface {
 
 message PageRequest{
     int32 pageSize = 1;
+}
+
+message InTheatreResp{
+    string movieTitle = 1;
+    string description = 2;
+    float rating = 3;
+    string releasedDate = 4;
 }
