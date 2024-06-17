@@ -64,7 +64,7 @@ func (c *movieInterfaceClient) MovieNowPlaying(ctx context.Context, in *PageRequ
 }
 
 type MovieInterface_MovieNowPlayingClient interface {
-	Recv() (*Response, error)
+	Recv() (*InTheatreResp, error)
 	grpc.ClientStream
 }
 
@@ -72,8 +72,8 @@ type movieInterfaceMovieNowPlayingClient struct {
 	grpc.ClientStream
 }
 
-func (x *movieInterfaceMovieNowPlayingClient) Recv() (*Response, error) {
-	m := new(Response)
+func (x *movieInterfaceMovieNowPlayingClient) Recv() (*InTheatreResp, error) {
+	m := new(InTheatreResp)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func _MovieInterface_MovieNowPlaying_Handler(srv interface{}, stream grpc.Server
 }
 
 type MovieInterface_MovieNowPlayingServer interface {
-	Send(*Response) error
+	Send(*InTheatreResp) error
 	grpc.ServerStream
 }
 
@@ -147,7 +147,7 @@ type movieInterfaceMovieNowPlayingServer struct {
 	grpc.ServerStream
 }
 
-func (x *movieInterfaceMovieNowPlayingServer) Send(m *Response) error {
+func (x *movieInterfaceMovieNowPlayingServer) Send(m *InTheatreResp) error {
 	return x.ServerStream.SendMsg(m)
 }
 

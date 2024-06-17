@@ -82,7 +82,7 @@ func (s *GrpcServer) MovieNowPlaying(req *proto.PageRequest, stream proto.MovieI
 	}()
 
 	for result := range resultChan {
-		response := &proto.Response{
+		response := &proto.InTheatreResp{
 			MovieTitle:   result.MovieTitle,
 			Description:  result.Overview,
 			Rating:       result.Rating,
