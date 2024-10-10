@@ -11,5 +11,5 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/movie-db .
 
-EXPOSE 5001
+EXPOSE 5001 8080
 CMD ["./movie-db"]

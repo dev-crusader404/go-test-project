@@ -1,0 +1,20 @@
+# docker-compose.yaml
+version: '3.8'
+services:
+  movie-db:
+    build:
+      context: .
+      dockerfile: Dockerfile.movie-db
+      args:
+        SERVICE_NAME: movie-db
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+  gateway-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+      args:
+        SERVICE_NAME: gateway-service
+    ports:
+      - "8081:8081"
