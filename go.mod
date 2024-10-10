@@ -4,6 +4,7 @@ go 1.21.8
 
 require (
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1
 	github.com/magiconair/properties v1.8.7
 	google.golang.org/genproto/googleapis/api v0.0.0-20240227224415-6ceb2ff114de

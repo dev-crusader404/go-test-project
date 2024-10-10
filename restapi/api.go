@@ -1,30 +1,17 @@
 package restapi
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
 
 	mv "github.com/dev-crusader404/go-test-project/internal"
-	"github.com/google/uuid"
+	ds "github.com/dev-crusader404/go-test-project/models"
+	md "github.com/dev-crusader404/go-test-project/startup/middleware"
 )
 
-type SearchRequest struct {
-	Title string `json:"title,omitempty"`
-	Year  string `json:"year,omitempty"`
-}
-
-type SearchResponse struct {
-	MovieTitle   string   `json:"movieTitle,omitempty"`
-	Year         string   `json:"year,omitempty"`
-	Description  string   `json:"description,omitempty"`
-	Rating       float32  `json:"rating,omitempty"`
-	Genre        []string `json:"genre,omitempty"`
-	ReleasedDate string   `json:"releasedDate,omitempty"`
-	GrossIncome  int64    `json:"grossIncome,omitempty"`
-}
+type fetcherHandlerFunc func(mv mv.MovieFetcher, w http.ResponseWriter, r *http.Request) error
 
 func Fetcher(m mv.MovieFetcher, hd fetcherHandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +23,7 @@ func Fetcher(m mv.MovieFetcher, hd fetcherHandlerFunc) http.HandlerFunc {
 
 func GetMovieHandler(m mv.MovieFetcher, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	reqID := ctx.Value("RequestID").(string)
+	reqID := ctx.Value(md.RequestIDKey).(string)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -44,7 +31,7 @@ func GetMovieHandler(m mv.MovieFetcher, w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	req := SearchRequest{}
+	req := ds.SearchRequest{}
 	err = json.Unmarshal(body, &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -62,7 +49,7 @@ func GetMovieHandler(m mv.MovieFetcher, w http.ResponseWriter, r *http.Request) 
 		log.Printf("error: %s", err.Error())
 		return err
 	}
-	response := SearchResponse{
+	response := ds.SearchResponse{
 		MovieTitle:   result.MovieTitle,
 		Year:         result.Year,
 		Description:  result.Overview,
@@ -76,19 +63,4 @@ func GetMovieHandler(m mv.MovieFetcher, w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	w.Write(b)
 	return nil
-}
-
-type fetcherHandlerFunc func(mv mv.MovieFetcher, w http.ResponseWriter, r *http.Request) error
-
-func Logger(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		requestID := r.Header.Get("X-Request-ID")
-		if requestID == "" {
-			requestID = uuid.New().String()
-		}
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, "RequestID", requestID)
-		r = r.WithContext(ctx)
-		next(w, r)
-	}
 }
