@@ -1,0 +1,15 @@
+FROM golang:1.21.8-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o ./movie-db .
+
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/movie-db .
+
+EXPOSE 5001
+CMD ["./movie-db"]
