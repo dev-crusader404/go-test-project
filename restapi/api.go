@@ -3,43 +3,40 @@ package restapi
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"time"
 
+	mv "github.com/dev-crusader404/go-test-project/internal"
 	"github.com/google/uuid"
 )
 
-type DB interface {
-	Store(s string) error
+type SearchRequest struct {
+	Title string `json:"title,omitempty"`
+	Year  string `json:"year,omitempty"`
 }
 
-type Store struct{}
-
-func NewDB() DB {
-	return &Store{}
+type SearchResponse struct {
+	MovieTitle   string   `json:"movieTitle,omitempty"`
+	Year         string   `json:"year,omitempty"`
+	Description  string   `json:"description,omitempty"`
+	Rating       float32  `json:"rating,omitempty"`
+	Genre        []string `json:"genre,omitempty"`
+	ReleasedDate string   `json:"releasedDate,omitempty"`
+	GrossIncome  int64    `json:"grossIncome,omitempty"`
 }
 
-func (s *Store) Store(a string) error {
-	fmt.Printf("\nStoring the value: %s", a)
-	return nil
-}
-
-func MakeHTTPFunc(db DB, hd myHandlerFunc) http.HandlerFunc {
-	fmt.Println("creating the makeHTTPFunc")
+func Fetcher(m mv.MovieFetcher, hd fetcherHandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := hd(db, w, r); err != nil {
+		if err := hd(m, w, r); err != nil {
 			http.Error(w, err.Error(), 500)
 		}
-		db.Store("Key to success")
 	}
 }
 
-func Handler(db DB, w http.ResponseWriter, r *http.Request) error {
+func GetMovieHandler(m mv.MovieFetcher, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	reqID := ctx.Value("RequestID").(string)
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,30 +44,43 @@ func Handler(db DB, w http.ResponseWriter, r *http.Request) error {
 	}
 	defer r.Body.Close()
 
-	request := struct {
-		Message string `json:"body"`
-	}{}
-	err = json.Unmarshal(body, &request)
+	req := SearchRequest{}
+	err = json.Unmarshal(body, &req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return err
 	}
+	log.Printf("Search Request received for movie: %s year: %s with requestID: %s", req.Title, req.Year, reqID)
+	id, err := m.GetMovie(ctx, req.Title, req.Year)
+	if err != nil {
+		log.Printf("error: %s", err.Error())
+		return err
+	}
 
-	fmt.Println("I am at handler function")
-	db.Store("Way through the key: " + reqID)
-	time.Sleep(2 * time.Second)
-	resp, _ := json.Marshal(map[string]any{"status": fmt.Sprintf("Successfully processed requestID: %s", reqID),
-		"message": request.Message})
+	result, err := m.GetDetails(ctx, id)
+	if err != nil {
+		log.Printf("error: %s", err.Error())
+		return err
+	}
+	response := SearchResponse{
+		MovieTitle:   result.MovieTitle,
+		Year:         result.Year,
+		Description:  result.Overview,
+		Rating:       result.Rating,
+		Genre:        result.Genre,
+		ReleasedDate: result.ReleasedDate,
+		GrossIncome:  result.GrossIncome,
+	}
+	b, _ := json.Marshal(response)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.Write(b)
 	return nil
 }
 
-type myHandlerFunc func(db DB, w http.ResponseWriter, r *http.Request) error
+type fetcherHandlerFunc func(mv mv.MovieFetcher, w http.ResponseWriter, r *http.Request) error
 
 func Logger(next http.HandlerFunc) http.HandlerFunc {
-	fmt.Println("logger init")
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestID := r.Header.Get("X-Request-ID")
 		if requestID == "" {
